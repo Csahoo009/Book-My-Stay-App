@@ -1,109 +1,62 @@
-<<<<<<< HEAD
-import java.util.*;
+import java.util.Scanner;
+import java.util.HashMap;
+import java.util.Map;
 
-class Service {
-    private String serviceName;
-    private double cost;
-
-    public Service(String serviceName, double cost) {
-        this.serviceName = serviceName;
-        this.cost = cost;
+class InvalidBookingException extends Exception {
+    public InvalidBookingException(String message) {
+        super(message);
     }
-
-    public String getServiceName() { return serviceName; }
-    public double getCost() { return cost; }
 }
 
-class AddOnServiceManager {
-    private Map<String, List<Service>> servicesByReservation;
+class RoomInventory {
+    private Map<String, Integer> roomAvailability;
 
-    public AddOnServiceManager() {
-        servicesByReservation = new HashMap<>();
+    public RoomInventory() {
+        roomAvailability = new HashMap<>();
+        roomAvailability.put("Single", 5);
+        roomAvailability.put("Double", 3);
+        roomAvailability.put("Suite", 2);
     }
 
-    public void addService(String reservationId, Service service) {
-        servicesByReservation.computeIfAbsent(reservationId, k -> new ArrayList<>()).add(service);
+    public Map<String, Integer> getRoomAvailability() {
+        return roomAvailability;
     }
+}
 
-    public double calculateTotalServiceCost(String reservationId) {
-        List<Service> services = servicesByReservation.get(reservationId);
-        if (services == null) return 0.0;
-
-        double total = 0;
-        for (Service s : services) {
-            total += s.getCost();
+class ReservationValidator {
+    public void validate(String guestName, String roomType, RoomInventory inventory) throws InvalidBookingException {
+        if (guestName == null || guestName.trim().isEmpty()) {
+            throw new InvalidBookingException("Guest name cannot be empty.");
         }
-        return total;
-    }
-}
 
-public class BookMyStayApp {
-    public static void main(String[] args) {
-        System.out.println("Add-On Service Selection");
-
-        AddOnServiceManager manager = new AddOnServiceManager();
-        String resId = "Single-1";
-
-        manager.addService(resId, new Service("Breakfast", 500.0));
-        manager.addService(resId, new Service("WiFi", 200.0));
-        manager.addService(resId, new Service("Late Checkout", 800.0));
-
-        System.out.println("Reservation ID: " + resId);
-        System.out.println("Total Add-On Cost: " + manager.calculateTotalServiceCost(resId));
-=======
-import java.util.ArrayList;
-import java.util.List;
-
-class Reservation {
-    private String guestName;
-    private String roomType;
-
-    public Reservation(String guestName, String roomType) {
-        this.guestName = guestName;
-        this.roomType = roomType;
-    }
-
-    public String getGuestName() { return guestName; }
-    public String getRoomType() { return roomType; }
-}
-
-class BookingHistory {
-    private List<Reservation> confirmedReservations;
-
-    public BookingHistory() {
-        confirmedReservations = new ArrayList<>();
-    }
-
-    public void addReservation(Reservation reservation) {
-        confirmedReservations.add(reservation);
-    }
-
-    public List<Reservation> getConfirmedReservations() {
-        return confirmedReservations;
-    }
-}
-
-class BookingReportService {
-    public void generateReport(BookingHistory history) {
-        System.out.println("Booking History Report");
-        for (Reservation res : history.getConfirmedReservations()) {
-            System.out.println("Guest: " + res.getGuestName() + ", Room Type: " + res.getRoomType());
+        if (!inventory.getRoomAvailability().containsKey(roomType)) {
+            throw new InvalidBookingException("Invalid room type selected.");
         }
     }
 }
 
 public class BookMyStayApp {
     public static void main(String[] args) {
-        System.out.println("Booking History and Reporting\n");
+        System.out.println("Booking Validation");
+        Scanner scanner = new Scanner(System.in);
 
-        BookingHistory history = new BookingHistory();
-        BookingReportService reportService = new BookingReportService();
+        RoomInventory inventory = new RoomInventory();
+        ReservationValidator validator = new ReservationValidator();
 
-        history.addReservation(new Reservation("Abhi", "Single"));
-        history.addReservation(new Reservation("Subha", "Double"));
-        history.addReservation(new Reservation("Vanmathi", "Suite"));
+        try {
+            System.out.print("Enter guest name: ");
+            String guestName = scanner.nextLine();
 
-        reportService.generateReport(history);
->>>>>>> feature/UC8
+            System.out.print("Enter room type (Single/Double/Suite): ");
+            String roomType = scanner.nextLine();
+
+            validator.validate(guestName, roomType, inventory);
+            System.out.println("Validation successful for " + guestName);
+
+        } catch (InvalidBookingException e) {
+            System.out.println("Booking failed: " + e.getMessage());
+        } finally {
+            scanner.close();
+        }
     }
 }
